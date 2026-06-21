@@ -1,0 +1,811 @@
+style<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vasile-Renato Casleanu — CV</title>
+<meta name="description" content="CV and portfolio of Vasile-Renato Casleanu.">
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,500;0,600;0,700;1,500&family=Source+Sans+3:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+
+<style>
+  /* ============================================================
+     TOKENS — change the look of the whole site from here
+     ============================================================ */
+  :root{
+    --ink:        #15171A;   /* case cover / background */
+    --ink-soft:   #1E2126;   /* slightly raised dark surface */
+    --paper:      #F7F4EE;   /* page background */
+    --paper-dim:  #ECE6D8;   /* secondary page surface */
+    --ink-text:   #1C1E22;   /* body text on paper */
+    --slate:      #686D75;   /* secondary text on paper */
+    --mist:       #B9BDC4;   /* secondary text on ink */
+    --paper-text: #F2EFE8;   /* primary text on ink */
+    --brass:      #C39A5C;   /* accent on dark surfaces */
+    --brass-soft: rgba(195,154,92,0.35);
+    --brass-deep: #7A5826;   /* accent text on light surfaces (AA contrast) */
+    --line-dark:  rgba(242,239,232,0.14);
+    --line-light: rgba(28,30,34,0.12);
+
+    --spine-w: 92px;
+    --topbar-h: 64px;
+    --radius: 2px;
+
+    --font-display: "Fraunces", Georgia, serif;
+    --font-body: "Source Sans 3", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+
+  /* ============================================================
+     RESET
+     ============================================================ */
+  *,*::before,*::after{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{ margin:0; }
+  img{ max-width:100%; display:block; }
+  a{ color:inherit; text-decoration:none; }
+  ul{ margin:0; padding:0; list-style:none; }
+  button{ font:inherit; }
+
+  body{
+    background:var(--ink);
+    color:var(--paper-text);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ============================================================
+     SKIP LINK
+     ============================================================ */
+  .skip-link{
+    position:absolute; left:-999px; top:0;
+    background:var(--brass); color:var(--ink);
+    padding:10px 16px; font-family:var(--font-mono); font-size:13px;
+    z-index:100;
+  }
+  .skip-link:focus{ left:8px; top:8px; }
+
+  /* ============================================================
+     FOCUS STATES
+     ============================================================ */
+  a:focus-visible, button:focus-visible{
+    outline:2px solid var(--brass);
+    outline-offset:3px;
+    border-radius:2px;
+  }
+
+  /* ============================================================
+     AMBIENT TEXTURE — faint grain on the ink case, kept very subtle
+     ============================================================ */
+  .grain{
+    position:fixed; inset:0; pointer-events:none; z-index:1;
+    opacity:0.05; mix-blend-mode:overlay;
+    background-image:
+      repeating-linear-gradient(115deg, #fff 0 1px, transparent 1px 3px);
+  }
+
+  /* ============================================================
+     SPINE — fixed left navigation, desktop only (the case binding)
+     ============================================================ */
+  .spine{
+    position:fixed; left:0; top:0; bottom:0; width:var(--spine-w);
+    display:flex; flex-direction:column; align-items:center;
+    justify-content:space-between;
+    padding:28px 0 24px;
+    background:var(--ink);
+    border-right:1px solid var(--line-dark);
+    z-index:50;
+  }
+  .spine::after{
+    content:""; position:absolute; right:0; top:0; bottom:0; width:2px;
+    background:linear-gradient(to bottom, transparent, var(--brass-soft) 12%, var(--brass-soft) 88%, transparent);
+  }
+  .monogram{
+    writing-mode:vertical-rl; text-orientation:mixed;
+    font-family:var(--font-display); font-weight:600; font-size:18px;
+    letter-spacing:0.18em; color:var(--brass);
+  }
+  .rivets{ display:flex; flex-direction:column; gap:22px; align-items:center; }
+  .rivets a{
+    position:relative; width:26px; height:26px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .rivet{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--ink-soft);
+    border:1px solid var(--brass-soft);
+    transition:background .2s ease, border-color .2s ease, transform .2s ease;
+  }
+  .rivets a::after{
+    content:attr(data-label);
+    position:absolute; left:64px; top:50%;
+    transform:translateY(-50%) translateX(-4px);
+    background:var(--ink-soft);
+    border:1px solid var(--line-dark);
+    border-radius:4px;
+    padding:7px 12px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.35);
+    font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--mist);
+    white-space:nowrap; opacity:0; pointer-events:none;
+    transition:opacity .18s ease, transform .18s ease;
+  }
+  .rivets a:hover::after,
+  .rivets a:focus-visible::after{
+    opacity:1; transform:translateY(-50%) translateX(0);
+  }
+  .rivets a:hover .rivet,
+  .rivets a:focus-visible .rivet{ border-color:var(--brass); transform:scale(1.15); }
+  .rivets a.is-active .rivet{
+    background:var(--brass); border-color:var(--brass); transform:scale(1.25);
+  }
+  .rivets a.is-active::after{
+    opacity:0.85; color:var(--brass); border-color:var(--brass-soft);
+    transform:translateY(-50%) translateX(0);
+  }
+
+  .spine-cv-link{
+    font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em;
+    color:var(--mist); writing-mode:vertical-rl; text-orientation:mixed;
+    padding:6px 0;
+    border-top:1px solid var(--line-dark);
+  }
+  .spine-cv-link:hover{ color:var(--brass); }
+
+  /* ============================================================
+     TOPBAR — mobile/tablet navigation (spine collapsed)
+     ============================================================ */
+  .topbar{
+    display:none;
+    position:fixed; top:0; left:0; right:0; height:var(--topbar-h);
+    z-index:50; background:var(--ink);
+    border-bottom:1px solid var(--line-dark);
+    align-items:center; justify-content:space-between;
+    padding:0 18px;
+    gap:12px;
+  }
+  .topbar-name{
+    font-family:var(--font-display); font-weight:600; font-size:13px;
+    letter-spacing:0.04em; color:var(--paper-text);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .topbar-links{
+    display:flex; gap:16px; overflow-x:auto;
+    font-family:var(--font-mono); font-size:11px;
+    letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--mist);
+    -ms-overflow-style:none; scrollbar-width:none;
+  }
+  .topbar-links::-webkit-scrollbar{ display:none; }
+  .topbar-links a{ white-space:nowrap; padding:4px 0; }
+  .topbar-links a.is-active{ color:var(--brass); border-bottom:1px solid var(--brass); }
+
+  /* ============================================================
+     LAYOUT SHELL
+     ============================================================ */
+  main{ margin-left:var(--spine-w); }
+
+  /* ============================================================
+     HERO — the cover of the case
+     ============================================================ */
+  .hero{
+    position:relative;
+    min-height:92vh;
+    display:flex; align-items:center;
+    padding:64px 64px;
+    overflow:hidden;
+  }
+  .hero-watermark{
+    position:absolute; right:-40px; bottom:-60px;
+    font-family:var(--font-display); font-weight:700;
+    font-size:clamp(220px, 32vw, 460px);
+    color:var(--paper-text); opacity:0.035;
+    line-height:1; letter-spacing:-0.02em;
+    pointer-events:none; user-select:none;
+  }
+  .hero-inner{ max-width:640px; position:relative; z-index:2; }
+  .eyebrow{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:0.18em;
+    text-transform:uppercase; color:var(--brass);
+    display:flex; align-items:center; gap:10px;
+    margin:0 0 22px;
+  }
+  .eyebrow::before{ content:""; width:22px; height:1px; background:var(--brass); }
+
+  .hero-name{
+    font-family:var(--font-display); font-weight:600;
+    font-size:clamp(38px, 6vw, 64px);
+    line-height:1.05; letter-spacing:-0.01em;
+    margin:0 0 18px; color:var(--paper-text);
+  }
+  .hero-role{
+    font-family:var(--font-display); font-style:italic; font-weight:500;
+    font-size:clamp(18px, 2.2vw, 22px);
+    color:var(--brass); margin:0 0 20px;
+  }
+  .hero-statement{
+    font-size:16px; line-height:1.7; color:var(--mist);
+    max-width:480px; margin:0 0 32px;
+  }
+  .hero-meta{
+    display:flex; flex-wrap:wrap; gap:10px 18px;
+    font-family:var(--font-mono); font-size:13px; color:var(--mist);
+    margin:0 0 36px;
+  }
+  .hero-meta span{ display:flex; align-items:center; gap:8px; }
+
+  .hero-actions{ display:flex; flex-wrap:wrap; gap:14px; }
+  .btn{
+    font-family:var(--font-mono); font-size:13px; letter-spacing:0.04em;
+    padding:13px 22px; border-radius:var(--radius);
+    transition:transform .15s ease, background .15s ease, color .15s ease, border-color .15s ease;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn--solid{ background:var(--brass); color:var(--ink); }
+  .btn--solid:hover{ transform:translateY(-1px); }
+  .btn--ghost{ border:1px solid var(--line-dark); color:var(--paper-text); }
+  .btn--ghost:hover{ border-color:var(--brass); color:var(--brass); }
+
+  .photo-frame{
+    position:absolute; top:64px; right:64px;
+    width:168px; height:168px;
+    border:1px dashed var(--line-dark);
+    border-radius:50%;
+    overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-mono); font-size:11px; line-height:1.5;
+    color:var(--mist); letter-spacing:0.02em;
+  }
+  .photo-frame img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+
+  /* ============================================================
+     PAGE CARDS — the contents of the case
+     ============================================================ */
+  .page{
+    position:relative;
+    background:var(--paper);
+    color:var(--ink-text);
+    max-width:880px; margin:0 auto;
+    padding:64px 56px;
+    clip-path:polygon(0 0, calc(100% - 28px) 0, 100% 28px, 100% 100%, 0 100%);
+  }
+  .page::before{
+    content:""; position:absolute; top:0; right:0; width:28px; height:28px;
+    background:linear-gradient(135deg, transparent 50%, var(--brass-soft) 50%);
+    clip-path:polygon(0 0, 100% 0, 100% 100%);
+    pointer-events:none;
+  }
+  .page + .page{ margin-top:2px; }
+  .page-pad{ padding-top:96px; padding-bottom:96px; }
+
+  .page-head{ margin:0 0 40px; }
+  .page-eyebrow{
+    font-family:var(--font-mono); font-size:11px; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--brass-deep);
+    margin:0 0 10px;
+  }
+  .page-title{
+    font-family:var(--font-display); font-weight:600;
+    font-size:clamp(26px, 3.4vw, 34px);
+    margin:0; color:var(--ink-text);
+  }
+
+  .lede{ font-size:17px; line-height:1.75; max-width:620px; color:var(--ink-text); }
+  .lede + .lede{ margin-top:16px; }
+  .muted{ color:var(--slate); }
+
+  .fact-row{
+    display:grid; grid-template-columns:140px 1fr;
+    gap:8px 24px; max-width:520px; margin-top:36px;
+    font-size:14px;
+  }
+  .fact-row dt{ font-family:var(--font-mono); color:var(--slate); letter-spacing:0.04em; }
+  .fact-row dd{ margin:0; }
+
+  /* ============================================================
+     TIMELINE — experience & education
+     ============================================================ */
+  .timeline{ position:relative; margin-top:8px; }
+  .timeline-item{
+    position:relative;
+    padding:0 0 40px 28px;
+    border-left:1px solid var(--line-light);
+  }
+  .timeline-item:last-child{ padding-bottom:0; }
+  .timeline-item::before{
+    content:""; position:absolute; left:-4px; top:4px;
+    width:8px; height:8px; border-radius:50%;
+    background:var(--paper); border:2px solid var(--brass-deep);
+  }
+  .timeline-date{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:0.06em;
+    color:var(--brass-deep); margin:0 0 6px;
+  }
+  .timeline-role{
+    font-family:var(--font-display); font-weight:600; font-size:19px;
+    margin:0 0 2px;
+  }
+  .timeline-org{ font-size:14px; color:var(--slate); margin:0 0 12px; }
+  .timeline-item ul{ display:flex; flex-direction:column; gap:8px; }
+  .timeline-item li{
+    font-size:15px; line-height:1.6; padding-left:18px; position:relative;
+  }
+  .timeline-item li::before{
+    content:"—"; position:absolute; left:0; color:var(--brass-deep);
+  }
+
+  /* ============================================================
+     SKILLS
+     ============================================================ */
+  .skill-groups{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:36px; margin-top:8px;
+  }
+  .skill-group-title{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--brass-deep); margin:0 0 14px;
+  }
+  .tag-list{ display:flex; flex-wrap:wrap; gap:8px; }
+  .tag{
+    font-size:13px; padding:7px 13px;
+    background:var(--paper-dim); border:1px solid var(--line-light);
+    border-radius:3px;
+  }
+
+  /* ============================================================
+     PROJECTS
+     ============================================================ */
+  .project-grid{
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:28px; margin-top:8px;
+  }
+  .project-card{ display:flex; flex-direction:column; }
+  .project-thumb{
+    aspect-ratio:16/9; width:100%;
+    background:var(--paper-dim);
+    border:1px dashed var(--line-light);
+    display:flex; align-items:center; justify-content:center;
+    text-align:center; padding:16px;
+    font-family:var(--font-mono); font-size:11px; color:var(--slate);
+    margin-bottom:14px;
+    overflow:hidden;
+  }
+  .project-thumb.project-thumb--image{
+    padding:0;
+  }
+  .project-thumb.project-thumb--image img{
+    width:100%;
+    height:100%;
+    min-width:100%;
+    min-height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .project-thumb img.project-thumb__rotated{
+    width:140%;
+    height:auto;
+    transform:rotate(-90deg);
+    transform-origin:center center;
+  }
+  .project-title{ font-family:var(--font-display); font-weight:600; font-size:18px; margin:0 0 6px; }
+  .project-desc{ font-size:14px; line-height:1.6; color:var(--slate); margin:0 0 10px; }
+  .project-link{
+    font-family:var(--font-mono); font-size:12px; letter-spacing:0.04em;
+    color:var(--brass-deep); border-bottom:1px solid currentColor;
+    width:fit-content;
+  }
+
+  /* ============================================================
+     CONTACT
+     ============================================================ */
+
+     .email-link {
+  color: #C39A5C;
+  text-decoration: none;
+
+  border: 1px solid rgba(195,154,92,0.6);
+  padding: 4px 10px;
+  border-radius: 4px;
+
+  display: inline-block;
+
+  transition: all 0.2s ease;
+}
+
+.email-link:hover {
+  background-color: #C39A5C;
+  color: var(--ink);
+  border-color: #C39A5C;
+}
+  .contact-grid{
+    display:grid; grid-template-columns:1fr 1fr; gap:32px;
+    margin-top:8px;
+  }
+  .contact-link{
+    display:flex; flex-direction:column; gap:4px;
+    padding:18px 0; border-bottom:1px solid var(--line-light);
+  }
+  .contact-link span{ font-family:var(--font-mono); font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--slate); }
+  .contact-link strong{ font-size:16px; font-weight:600; color:var(--brass-deep); }
+
+  /* ============================================================
+     FOOTER
+     ============================================================ */
+  .footer{
+    background:var(--ink);
+    padding:32px 56px 40px;
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:var(--font-mono); font-size:12px; color:var(--mist);
+  }
+  .footer a:hover{ color:var(--brass); }
+
+  /* ============================================================
+     SCROLL REVEAL
+     ============================================================ */
+  .page{ opacity:0; transform:translateY(14px); transition:opacity .5s ease, transform .5s ease; }
+  .page.is-visible{ opacity:1; transform:none; }
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media (max-width:860px){
+    .spine{ display:none; }
+    .topbar{ display:flex; }
+    main{ margin-left:0; padding-top:var(--topbar-h); }
+    .hero{ padding:48px 24px; min-height:auto; padding-top:64px; }
+    .photo-frame{ position:static; margin-bottom:28px; width:120px; height:120px; }
+    .page{ padding:48px 24px; }
+    .footer{ flex-direction:column; gap:10px; align-items:flex-start; padding:28px 24px 36px; }
+    .contact-grid{ grid-template-columns:1fr; }
+  }
+
+  /* ============================================================
+     PRINT — so this can double as an actual printable CV
+     ============================================================ */
+  @media print{
+    .spine, .topbar, .grain, .hero-watermark, .photo-frame{ display:none; }
+    body, main{ margin:0; background:#fff; color:#000; }
+    .hero{ min-height:auto; padding:0 0 24px; }
+    .page{
+      background:#fff; color:#000; box-shadow:none;
+      clip-path:none; padding:24px 0; max-width:100%;
+      opacity:1; transform:none; page-break-inside:avoid;
+    }
+    .page::before{ display:none; }
+    .footer{ background:#fff; color:#000; }
+  }
+
+  /* ============================================================
+     REDUCED MOTION
+     ============================================================ */
+  @media (prefers-reduced-motion: reduce){
+    html{ scroll-behavior:auto; }
+    .page{ opacity:1; transform:none; transition:none; }
+    .btn, .rivet{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="grain" aria-hidden="true"></div>
+
+<!-- ============ DESKTOP SPINE NAVIGATION ============ -->
+<header class="spine">
+  <span class="monogram" aria-hidden="true">CVR</span>
+  <nav class="rivets" aria-label="Section navigation">
+    <a href="#about" data-label="About"><span class="rivet"></span></a>
+    <a href="#experience" data-label="Experience"><span class="rivet"></span></a>
+    <a href="#education" data-label="Education"><span class="rivet"></span></a>
+    <a href="#skills" data-label="Skills"><span class="rivet"></span></a>
+    <a href="#projects" data-label="Projects"><span class="rivet"></span></a>
+    <a href="#contact" data-label="Contact"><span class="rivet"></span></a>
+  </nav>
+  <!-- Add your CV file as "cv.pdf" next to this page -->
+  <a class="spine-cv-link" href="cv.pdf" download>CV ↓</a>
+</header>
+
+<!-- ============ MOBILE TOPBAR NAVIGATION ============ -->
+<nav class="topbar" aria-label="Section navigation">
+  <span class="topbar-name">V. Casleanu</span>
+  <div class="topbar-links">
+    <a href="#about">About</a>
+    <a href="#experience">Experience</a>
+    <a href="#education">Education</a>
+    <a href="#skills">Skills</a>
+    <a href="#projects">Projects</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<main id="main">
+
+  <!-- ============ HERO ============ -->
+  <section id="hero" class="hero">
+    <span class="hero-watermark" aria-hidden="true">CVRgit push -u origin maingit push -u origin main --force</span>
+
+    <!--
+      Photo placeholder — replace the inner text with:
+      <img src="photo.jpg" alt="Vasile-Renato Casleanu">
+      and remove the dashed border/background in .photo-frame if you like.
+    -->
+    <div class="photo-frame">
+      <img src="Images/CirclePhoto.jpg" alt="Vasile-Renato Casleanu">
+    </div>
+
+    <div class="hero-inner">
+      <p class="eyebrow">Curriculum&nbsp;Vitae</p>
+      <h1 class="hero-name">Vasile-Renato<br>Casleanu</h1>
+      <p class="hero-role">School Leaver</p>
+      <p class="hero-statement">
+        Motivated and reliable, with experience in event support,
+        volunteering and community activities — eager to gain further
+        experience and contribute positively to the workplace.
+      </p>
+      <div class="contact-info">
+        <p>Leeds, UK</p>
+        <p><a class="email-link" href="mailto:casleanurenato@gmail.com">casleanurenato@gmail.com</a></p>
+      </div>
+      <div class="hero-actions">
+        <a class="btn btn--solid" href="Images/cv.pdf" download>Download CV</a>
+        <a class="btn btn--ghost" href="#contact">Get in touch</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ABOUT ============ -->
+  <section id="about" class="page">
+    <div class="page-head">
+      <p class="page-eyebrow">01 · About</p>
+      <h2 class="page-title">About</h2>
+    </div>
+    <p class="lede">
+      Motivated and reliable school leaver with experience in event
+      support, volunteering, and community activities. Through work at
+      Headingley Stadium, volunteering with CATCH Leeds, participation in
+      a church choir, and an international educational visit to Italy, I
+      have developed strong teamwork, communication, and organisational
+      skills.
+    </p>
+    <p class="lede muted">
+      I am eager to gain further experience and contribute positively to
+      the workplace environment.
+    </p>
+    <dl class="fact-row">
+      <dt>Location</dt><dd>Leeds, UK</dd>
+      <dt>Languages</dt><dd>Romanian, English</dd>
+      <dt>Availability</dt><dd>Monday - Sunday</dd>
+    </dl>
+  </section>
+
+  <!-- ============ EXPERIENCE ============ -->
+  <section id="experience" class="page">
+    <div class="page-head">
+      <p class="page-eyebrow">02 · Experience</p>
+      <h2 class="page-title">Experience</h2>
+    </div>
+
+    <div class="timeline">
+      <!-- Duplicate this .timeline-item block for each role -->
+      <div class="timeline-item">
+        <p class="timeline-date">Summer 2025</p>
+        <h3 class="timeline-role">Waste Management Assistant</h3>
+        <p class="timeline-org">Headingley Stadium · Leeds</p>
+        <ul>
+          <li>Assisted in maintaining cleanliness during cricket events.</li>
+          <li>Worked efficiently in a busy environment with large crowds.</li>
+          <li>Followed health and safety procedures.</li>
+          <li>Worked as part of a team to ensure the venue remained presentable.</li>
+        </ul>
+      </div>
+
+      <div class="timeline-item">
+        <p class="timeline-date">Summer 2025</p>
+        <h3 class="timeline-role">Community Volunteer</h3>
+        <p class="timeline-org">CATCH Leeds</p>
+        <ul>
+          <li>Assisted with community projects and activities.</li>
+          <li>Worked alongside volunteers and staff.</li>
+          <li>Developed teamwork, communication and organisational skills.</li>
+        </ul>
+      </div>
+
+      <div class="timeline-item">
+        <p class="timeline-date">Spring 2024</p>
+        <h3 class="timeline-role">International Educational Visit</h3>
+        <p class="timeline-org">Borgo Valsugana, Italy</p>
+        <ul>
+          <li>Delivered presentations about life in Britain.</li>
+          <li>Taught lessons to students in Italian schools.</li>
+          <li>Developed public speaking and cultural awareness skills.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ EDUCATION ============ -->
+  <section id="education" class="page">
+    <div class="page-head">
+      <p class="page-eyebrow">03 · Education</p>
+      <h2 class="page-title">Education</h2>
+    </div>
+
+    <div class="timeline">
+      <!-- Duplicate this .timeline-item block for each qualification -->
+      <div class="timeline-item">
+        <p class="timeline-date">2021 – 2026</p>
+        <h3 class="timeline-role">GCSEs <span class="muted">(results pending)</span></h3>
+        <p class="timeline-org">Co-op Academy Leeds</p>
+        <ul>
+          <li>English Language, English Literature, Mathematics, Combined Science</li>
+          <li>Computer Science, Business Studies, Geography, Music</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SKILLS ============ -->
+  <section id="skills" class="page">
+    <div class="page-head">
+      <p class="page-eyebrow">04 · Skills</p>
+      <h2 class="page-title">Skills</h2>
+    </div>
+
+    <div class="skill-groups">
+      <div>
+        <p class="skill-group-title">Personal Qualities</p>
+        <div class="tag-list">
+          <span class="tag">Reliability</span>
+          <span class="tag">Time Management</span>
+          <span class="tag">Problem-Solving</span>
+        </div>
+      </div>
+      <div>
+        <p class="skill-group-title">Communication</p>
+        <div class="tag-list">
+          <span class="tag">Teamwork</span>
+          <span class="tag">Communication</span>
+          <span class="tag">Public Speaking</span>
+        </div>
+      </div>
+      <div>
+        <p class="skill-group-title">Workplace</p>
+        <div class="tag-list">
+          <span class="tag">Health &amp; Safety Awareness</span>
+          <span class="tag">Working Under Pressure</span>
+          <span class="tag">Organisation</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PROJECTS ============ -->
+  <section id="projects" class="page">
+    <div class="page-head">
+      <p class="page-eyebrow">05 · Projects</p>
+      <h2 class="page-title">Selected work</h2>
+    </div>
+
+    <div class="project-grid">
+      <!-- Duplicate this .project-card block for each project -->
+      <div class="project-card">
+        <div class="project-thumb project-thumb--image">
+          <img class="project-thumb__rotated" src="Images/Headingley.jpg" alt="Headingley Stadium">
+        </div>
+        <h3 class="project-title">Headingley Stadium</h3>
+        <p class="project-desc">Assisted in managing the 3rd and 4th floors during cricket match days, helping ensure smooth operations and a positive match-day experience.</p>
+        <a class="project-link" href="https://maps.app.goo.gl/jfRUo7pRbG3VvmM4A">[ View project → ]</a>
+      </div>
+
+      <div class="project-card">
+        <div class="project-thumb project-thumb--image">
+          <img src="Images/churchChoir.jpeg" alt="Church Choir">
+        </div>
+        <h3 class="project-title">Church Choir</h3>
+        <p class="project-desc">Served in the kliros(choir stalls)during church services, assisting with chanting and supporting liturgical worship.</p>
+        <a class="project-link" href="https://sfmacarie.org/">[ View project → ]</a>
+      </div>
+
+      <div class="project-card">
+        <div class="project-thumb project-thumb--image">
+          <img src="Images/MeTeaching.jpg" alt="Project image">
+        </div>
+        <h3 class="project-title">Teaching a class in Italy</h3>
+        <p class="project-desc">Delivering a presentation on British customs.</p>
+        <a class="project-link" href="https://www.facebook.com/photo.php?fbid=1159256231740858&set=pb.100029694771866.-2207520000&type=3">[ View project → ]</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTACT ============ -->
+  <section id="contact" class="page page-pad">
+    <div class="page-head">
+      <p class="page-eyebrow">06 · Contact</p>
+      <h2 class="page-title">Get in touch</h2>
+    </div>
+    <p class="lede muted">Get in touch about work, volunteering or opportunities.</p>
+
+    <div class="contact-grid">
+      <a class="contact-link" href="mailto:casleanurenato@gmail.com">
+        <span>Email</span>
+        <strong>casleanurenato@gmail.com</strong>
+      </a>
+      <a class="contact-link" href="tel:+447471486619">
+        <span>Phone</span>
+        <strong>07471 486619</strong>
+      </a>
+      <!-- Optional — delete this block if you don't have a LinkedIn yet -->
+      <a class="contact-link" href="https://www.linkedin.com/in/renato-casleanu-a47843418/">
+        <span>LinkedIn</span>
+        <strong>My LinkedIn</strong>
+      </a>
+      <!-- Optional — delete this block if you don't have a GitHub yet -->
+      <a class="contact-link" href="https://github.com/Unity59397">
+        <span>GitHub</span>
+        <strong>My Github</strong>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <span>© <span id="year"></span> Vasile-Renato Casleanu</span>
+  <a href="#hero">Back to top ↑</a>
+</footer>
+
+<script>
+  // Footer year
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // Active section highlighting (spine rivets + mobile topbar links)
+  var sections = document.querySelectorAll('main section[id]');
+  var navLinks = document.querySelectorAll('.rivets a, .topbar-links a');
+
+  if ('IntersectionObserver' in window && sections.length) {
+    var navObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          var id = entry.target.getAttribute('id');
+          navLinks.forEach(function (link) {
+            var match = link.getAttribute('href') === '#' + id;
+            link.classList.toggle('is-active', match);
+            if (match) link.setAttribute('aria-current', 'true');
+            else link.removeAttribute('aria-current');
+          });
+        }
+      });
+    }, { rootMargin: '-45% 0px -45% 0px' });
+
+    sections.forEach(function (s) { navObserver.observe(s); });
+  }
+
+  // Fade-in reveal for page cards (skipped if reduced motion is preferred)
+  var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var pages = document.querySelectorAll('.page');
+
+  if ('IntersectionObserver' in window && pages.length && !prefersReducedMotion) {
+    var revealObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+
+    pages.forEach(function (p) { revealObserver.observe(p); });
+  } else {
+    pages.forEach(function (p) { p.classList.add('is-visible'); });
+  }
+</script>
+
+</body>
+</html>
