@@ -1,4 +1,4 @@
-style<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -26,6 +26,7 @@ style<!DOCTYPE html>
     --paper-text: #F2EFE8;   /* primary text on ink */
     --brass:      #C39A5C;   /* accent on dark surfaces */
     --brass-soft: rgba(195,154,92,0.35);
+    --brass-glow: rgba(195,154,92,0.18);
     --brass-deep: #7A5826;   /* accent text on light surfaces (AA contrast) */
     --line-dark:  rgba(242,239,232,0.14);
     --line-light: rgba(28,30,34,0.12);
@@ -75,6 +76,15 @@ style<!DOCTYPE html>
     outline:2px solid var(--brass);
     outline-offset:3px;
     border-radius:2px;
+  }
+
+  /* ============================================================
+     INTERACTIVE TRIANGLE MESH — connected faceted shapes that
+     glow along their edges near the cursor
+     ============================================================ */
+  #scaleField{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    display:block; width:100%; height:100%;
   }
 
   /* ============================================================
@@ -495,6 +505,7 @@ style<!DOCTYPE html>
 <body>
 
 <a class="skip-link" href="#main">Skip to content</a>
+<canvas id="scaleField" aria-hidden="true"></canvas>
 <div class="grain" aria-hidden="true"></div>
 
 <!-- ============ DESKTOP SPINE NAVIGATION ============ -->
@@ -509,7 +520,7 @@ style<!DOCTYPE html>
     <a href="#contact" data-label="Contact"><span class="rivet"></span></a>
   </nav>
   <!-- Add your CV file as "cv.pdf" next to this page -->
-  <a class="spine-cv-link" href="cv.pdf" download>CV ↓</a>
+  <a class="spine-cv-link" href="Images/cv.pdf" download>CV ↓</a>
 </header>
 
 <!-- ============ MOBILE TOPBAR NAVIGATION ============ -->
@@ -529,7 +540,7 @@ style<!DOCTYPE html>
 
   <!-- ============ HERO ============ -->
   <section id="hero" class="hero">
-    <span class="hero-watermark" aria-hidden="true">CVR -- Vasile Renato</span>
+    <span class="hero-watermark" aria-hidden="true">CVR - CVR - CVR</span>
 
     <!--
       Photo placeholder — replace the inner text with:
@@ -543,7 +554,7 @@ style<!DOCTYPE html>
     <div class="hero-inner">
       <p class="eyebrow">Curriculum&nbsp;Vitae</p>
       <h1 class="hero-name">Vasile-Renato<br>Casleanu</h1>
-      <p class="hero-role">School Leaver</p>
+      <p class="hero-role">Aspiring software developer & Recent Secondary School Graduate</p>
       <p class="hero-statement">
         Motivated and reliable, with experience in event support,
         volunteering and community activities — eager to gain further
@@ -701,7 +712,7 @@ style<!DOCTYPE html>
         </div>
         <h3 class="project-title">Headingley Stadium</h3>
         <p class="project-desc">Assisted in managing the 3rd and 4th floors during cricket match days, helping ensure smooth operations and a positive match-day experience.</p>
-        <a class="project-link" href="https://maps.app.goo.gl/jfRUo7pRbG3VvmM4A">[ View project → ]</a>
+        <a class="project-link" href="https://maps.app.goo.gl/jfRUo7pRbG3VvmM4A">[ Headingley Stadium map → ]</a>
       </div>
 
       <div class="project-card">
@@ -710,7 +721,7 @@ style<!DOCTYPE html>
         </div>
         <h3 class="project-title">Church Choir</h3>
         <p class="project-desc">Served in the kliros(choir stalls)during church services, assisting with chanting and supporting liturgical worship.</p>
-        <a class="project-link" href="https://sfmacarie.org/">[ View project → ]</a>
+        <a class="project-link" href="https://sfmacarie.org/">[ Church Website → ]</a>
       </div>
 
       <div class="project-card">
@@ -719,7 +730,7 @@ style<!DOCTYPE html>
         </div>
         <h3 class="project-title">Teaching a class in Italy</h3>
         <p class="project-desc">Delivering a presentation on British customs.</p>
-        <a class="project-link" href="https://www.facebook.com/photo.php?fbid=1159256231740858&set=pb.100029694771866.-2207520000&type=3">[ View project → ]</a>
+        <a class="project-link" href="https://www.facebook.com/photo.php?fbid=1159256231740858&set=pb.100029694771866.-2207520000&type=3">[ School facebook post → ]</a>
       </div>
     </div>
   </section>
@@ -805,6 +816,159 @@ style<!DOCTYPE html>
   } else {
     pages.forEach(function (p) { p.classList.add('is-visible'); });
   }
+</script>
+
+<script>
+(function(){
+  var canvas = document.getElementById('scaleField');
+  if(!canvas || !canvas.getContext) return;
+  var ctx = canvas.getContext('2d');
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var W, H;
+  var points = [];      // {x,y} grid vertices, lightly jittered
+  var triangles = [];   // {a,b,c,seed} indices into points
+  var edges = [];        // {a,b} indices into points, deduplicated
+  var CELL = 90;          // average triangle size
+  var JITTER = 0.30;      // 0..0.5 of CELL — how irregular/abstract the mesh looks
+  var RADIUS = 230;        // how far the cursor's glow reaches
+
+  var mx = -9999, my = -9999;
+  var targetMx = -9999, targetMy = -9999;
+
+  function build(){
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+
+    var cols = Math.ceil(W / CELL) + 2;
+    var rows = Math.ceil(H / CELL) + 2;
+
+    points = [];
+    for(var j = 0; j < rows; j++){
+      for(var i = 0; i < cols; i++){
+        points.push({
+          x: i * CELL - CELL + (Math.random() - 0.5) * CELL * JITTER,
+          y: j * CELL - CELL + (Math.random() - 0.5) * CELL * JITTER
+        });
+      }
+    }
+
+    function idx(i, j){ return j * cols + i; }
+
+    triangles = [];
+    edges = [];
+    var seen = {};
+    function addEdge(a, b){
+      var key = a < b ? (a + '_' + b) : (b + '_' + a);
+      if(!seen[key]){ seen[key] = true; edges.push({ a: a, b: b }); }
+    }
+
+    for(var jj = 0; jj < rows - 1; jj++){
+      for(var ii = 0; ii < cols - 1; ii++){
+        var p00 = idx(ii, jj), p10 = idx(ii + 1, jj),
+            p01 = idx(ii, jj + 1), p11 = idx(ii + 1, jj + 1);
+
+        // alternate the split diagonal per cell for a more abstract, less uniform mesh
+        if((ii + jj) % 2 === 0){
+          triangles.push({ a: p00, b: p10, c: p01, seed: Math.random() });
+          triangles.push({ a: p10, b: p11, c: p01, seed: Math.random() });
+          addEdge(p00, p10); addEdge(p10, p01); addEdge(p01, p00);
+          addEdge(p10, p11); addEdge(p11, p01);
+        } else {
+          triangles.push({ a: p00, b: p10, c: p11, seed: Math.random() });
+          triangles.push({ a: p00, b: p11, c: p01, seed: Math.random() });
+          addEdge(p00, p10); addEdge(p10, p11); addEdge(p11, p00);
+          addEdge(p11, p01); addEdge(p01, p00);
+        }
+      }
+    }
+  }
+
+  function drawFrame(){
+    ctx.clearRect(0, 0, W, H);
+
+    // faint faceted fills — barely visible, slightly warmer near the cursor
+    for(var t = 0; t < triangles.length; t++){
+      var tri = triangles[t];
+      var a = points[tri.a], b = points[tri.b], c = points[tri.c];
+      var cx = (a.x + b.x + c.x) / 3, cy = (a.y + b.y + c.y) / 3;
+      var dx = cx - mx, dy = cy - my;
+      var dist = Math.sqrt(dx * dx + dy * dy);
+      var glow = Math.max(0, 1 - dist / RADIUS);
+      glow = glow * glow;
+
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.lineTo(c.x, c.y);
+      ctx.closePath();
+
+      var baseAlpha = 0.012 + tri.seed * 0.018;
+      if(glow > 0.02){
+        ctx.fillStyle = 'rgba(195,154,92,' + (baseAlpha + glow * 0.10).toFixed(3) + ')';
+      } else {
+        ctx.fillStyle = 'rgba(242,239,232,' + baseAlpha.toFixed(3) + ')';
+      }
+      ctx.fill();
+    }
+
+    // connective edges — these are what actually glow near the cursor
+    for(var e = 0; e < edges.length; e++){
+      var ed = edges[e];
+      var p1 = points[ed.a], p2 = points[ed.b];
+      var emx = (p1.x + p2.x) / 2, emy = (p1.y + p2.y) / 2;
+      var edx = emx - mx, edy = emy - my;
+      var edist = Math.sqrt(edx * edx + edy * edy);
+      var eglow = Math.max(0, 1 - edist / RADIUS);
+      eglow = eglow * eglow;
+
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+      ctx.lineTo(p2.x, p2.y);
+
+      if(eglow > 0.04){
+        ctx.shadowColor = 'rgba(195,154,92,0.9)';
+        ctx.shadowBlur = 16 * eglow;
+        ctx.strokeStyle = 'rgba(195,154,92,' + (0.22 + eglow * 0.68).toFixed(3) + ')';
+        ctx.lineWidth = 1.2;
+      } else {
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = 'rgba(242,239,232,0.06)';
+        ctx.lineWidth = 1;
+      }
+      ctx.stroke();
+    }
+  }
+
+  function frame(){
+    mx += (targetMx - mx) * 0.18;
+    my += (targetMy - my) * 0.18;
+    drawFrame();
+    if(!reduceMotion) requestAnimationFrame(frame);
+  }
+
+  function setTarget(x, y){ targetMx = x; targetMy = y; }
+
+  window.addEventListener('mousemove', function(e){ setTarget(e.clientX, e.clientY); }, { passive: true });
+  window.addEventListener('mouseleave', function(){ setTarget(-9999, -9999); }, { passive: true });
+  window.addEventListener('touchmove', function(e){
+    if(e.touches && e.touches[0]) setTarget(e.touches[0].clientX, e.touches[0].clientY);
+  }, { passive: true });
+  window.addEventListener('touchend', function(){ setTarget(-9999, -9999); }, { passive: true });
+
+  var resizeTimer;
+  window.addEventListener('resize', function(){
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(build, 150);
+  }, { passive: true });
+
+  build();
+  if(reduceMotion){
+    drawFrame();
+  } else {
+    frame();
+  }
+})();
 </script>
 
 </body>
