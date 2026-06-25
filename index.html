@@ -469,8 +469,40 @@
     .spine{ display:none; }
     .topbar{ display:flex; }
     main{ margin-left:0; padding-top:var(--topbar-h); }
-    .hero{ padding:48px 24px; min-height:auto; padding-top:64px; }
-    .photo-frame{ position:static; margin-bottom:28px; width:120px; height:120px; }
+    .hero{
+      padding:48px 24px; min-height:auto; padding-top:64px;
+      display:grid;
+      grid-template-columns:1fr auto;
+      column-gap:18px;
+      grid-template-areas:
+        "eyebrow eyebrow"
+        "name    photo"
+        "role    role"
+        "statement statement"
+        "contact contact"
+        "actions actions";
+    }
+    /* lets eyebrow/name/role/etc (children of .hero-inner) act as direct grid
+       items of .hero, without changing the HTML structure */
+    .hero-inner{ display:contents; }
+    .eyebrow{ grid-area:eyebrow; }
+    .hero-name{ grid-area:name; align-self:center; font-size:clamp(26px, 7vw, 36px); }
+    .hero-role{ grid-area:role; }
+    .hero-statement{ grid-area:statement; }
+    .contact-info{ grid-area:contact; }
+    .hero-actions{ grid-area:actions; }
+
+    .photo-frame{
+      grid-area:photo;
+      position:static;
+      align-self:center;
+      justify-self:end;
+      width:88px; height:88px;
+      aspect-ratio:1/1;     /* locks it to a true circle, can't be squashed */
+      flex-shrink:0;
+      margin:0 0 0 0;
+      transform:translateY(-10px);  /* nudge it up slightly relative to the name */
+    }
     .page{ padding:48px 24px; }
     .footer{ flex-direction:column; gap:10px; align-items:flex-start; padding:28px 24px 36px; }
     .contact-grid{ grid-template-columns:1fr; }
